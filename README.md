@@ -75,6 +75,9 @@ static int math_random(lua_State* L)
 }
 ```
 
+### cracking pcg32
+to do this, clover enumerates all 32 possible rotations from 0 to 31 rotations inclusive. then, for each rotation, reconstruct the 'high bits' (59..27) of the pre-rotation `xorshifted` value (see above). these become the high bits of the (old state >> 18)  XOR old state. assuming this goes fine, we bruteforce the lower 27 bits lost in the 27 bitshift through GPU (cuda magic). then, we 'stamp' the 5-bit rot in the state, as `rot = old >> 59`; which implies that this participates in the later permutation stage of pcg. this must match the rotation we are testing. so we set `FULL_XOR |= (rot << 59)` to make it actually consistent (from olds 59-63 bits). finally, we unxorshift per and from the above to recover our old state.
+
 the pcg32 xsh-rr algorithm is slightly harder to break than lcgs (duh) but it is still relatively easy if you have a good rig.
 
 
